@@ -9,8 +9,20 @@
             Padding="30,0"
             VerticalOptions="Center">
 
-            <Button x:Name="ConnectBtn" Text="Connect to Server" Clicked="OnConnectClicked" HorizontalOptions="Center" />
-            <Label x:Name="DataLabel" Text="Data: " HorizontalOptions="Center" />
+            <Button 
+                x:Name="ConnectBtn" 
+                Text="Connect to Server" 
+                Clicked="OnConnectClicked" 
+                HorizontalOptions="Center" />
+            <Label 
+                x:Name="DataLabel" 
+                Text="Data: " 
+                HorizontalOptions="Center" />
+            <Button 
+                x:Name="TerminateBtn" 
+                Text="Terminate Connection to Server" 
+                Clicked="OnTerminateClickedAsync" 
+                HorizontalOptions="Center" />
 
         </VerticalStackLayout>
     </ScrollView>
