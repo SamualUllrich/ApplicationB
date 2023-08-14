@@ -77,9 +77,9 @@ namespace ApplicationB
             await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
 
             _webSocket.Dispose();
-            _webSocket = null;
 
             _isConnected = false;
+            ConnectBtn.Text = "Connect";
         }
 
         private async Task ReadDataAsync()
