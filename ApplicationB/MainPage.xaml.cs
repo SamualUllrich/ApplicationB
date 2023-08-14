@@ -16,25 +16,40 @@ namespace ApplicationB
 
         private async void OnConnectClicked(object sender, EventArgs e)
         {
-
-            if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+            try
             {
-                await DisplayAlert("Connection Error", "Already connected to Application A. Please disconnect before attempting to reconnect.", "OK");
-                return;
+                if (_webSocket != null && _webSocket.State == WebSocketState.Open)
+                {
+                    await DisplayAlert("Connection Error", "Already connected to Application A. Please disconnect before attempting to reconnect.", "OK");
+                    return;
+                }
+
+                _webSocket = new ClientWebSocket();
+                var client = new HttpClient();
+                var response = await client.GetAsync("http://localhost:9696/api/start");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    _isConnected = true;
+                    ConnectBtn.Text = "Streaming Started";
+                    await _webSocket.ConnectAsync(new Uri("ws://localhost:9696/data"), CancellationToken.None);
+                    await ReadDataAsync();
+                }
             }
-            
-            // Call the REST API from Application A to start streaming
-            _webSocket = new ClientWebSocket();
-            var client = new HttpClient();
-            var response = await client.GetAsync("http://localhost:9696/api/start");
-
-            if (response.IsSuccessStatusCode) 
+            catch (HttpRequestException ex)
             {
-                _isConnected = true;
-                ConnectBtn.Text = "Streaming Started";
-                // Connect to the web socket in Application A
-                await _webSocket.ConnectAsync(new Uri("ws://localhost:9696/data"), CancellationToken.None);
-                await ReadDataAsync();
+                // Handle error related to HTTP request
+                await DisplayAlert("Connection Error", $"Failed to connect to Application A: {ex.Message}", "OK");
+            }
+            catch (WebSocketException ex)
+            {
+                // Handle error related to WebSocket connection
+                await DisplayAlert("Connection Error", $"WebSocket connection failed: {ex.Message}", "OK");
+            }
+            catch (Exception ex)
+            {
+                // General error handling
+                await DisplayAlert("Unexpected Error", $"An unexpected error occurred: {ex.Message}", "OK");
             }
         }
 
@@ -42,13 +57,12 @@ namespace ApplicationB
         {
             if (!_isConnected)
             {
-                DisplayAlert("Disconnect Error", "Not currently connected to Application A.", "OK");
+                _ = DisplayAlert("Disconnect Error", "Not currently connected to Application A.", "OK");
                 return;
             }
 
             await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
 
-            // Dispose of the WebSocket client
             _webSocket.Dispose();
             _webSocket = null;
 
