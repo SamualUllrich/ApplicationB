@@ -1,6 +1,7 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
 
+
 namespace ApplicationB
 {
     public partial class MainPage : ContentPage
@@ -24,31 +25,43 @@ namespace ApplicationB
                     return;
                 }
 
+                string baseUrl;
+                Uri webSocketUri;
+
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    baseUrl = "http://10.0.2.2:9696/api/start";
+                    webSocketUri = new Uri("ws://10.0.2.2:9696/data");
+                }
+                else
+                {
+                    baseUrl = "http://localhost:9696/api/start";
+                    webSocketUri = new Uri("ws://localhost:9696/data");
+                }
+
                 _webSocket = new ClientWebSocket();
                 var client = new HttpClient();
-                var response = await client.GetAsync("http://localhost:9696/api/start");
+
+                var response = await client.GetAsync(baseUrl);
 
                 if (response.IsSuccessStatusCode)
                 {
                     _isConnected = true;
                     ConnectBtn.Text = "Streaming Started";
-                    await _webSocket.ConnectAsync(new Uri("ws://localhost:9696/data"), CancellationToken.None);
+                    await _webSocket.ConnectAsync(webSocketUri, CancellationToken.None);
                     await ReadDataAsync();
                 }
             }
             catch (HttpRequestException ex)
             {
-                // Handle error related to HTTP request
                 await DisplayAlert("Connection Error", $"Failed to connect to Application A: {ex.Message}", "OK");
             }
             catch (WebSocketException ex)
             {
-                // Handle error related to WebSocket connection
                 await DisplayAlert("Connection Error", $"WebSocket connection failed: {ex.Message}", "OK");
             }
             catch (Exception ex)
             {
-                // General error handling
                 await DisplayAlert("Unexpected Error", $"An unexpected error occurred: {ex.Message}", "OK");
             }
         }
